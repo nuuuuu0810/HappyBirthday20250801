@@ -57,9 +57,39 @@
             }
         }
 
+        #startup-popup {
+            position: fixed; /* 画面に固定 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒い背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* 他の要素より手前に表示 */
+            color: white;
+            font-size: 2rem;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            cursor: pointer;
+            /* フェードアウト用の設定 */
+            transition: opacity 1s, visibility 1s;
+            opacity: 1;
+            visibility: visible;
+        }
+        /* ポップアップを非表示にするためのクラス */
+        #startup-popup.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
     </style>
 </head>
 <body>
+    <div id="startup-popup">
+        <p>TAP TO START</p>
+    </div>
     <div id="firefly-container"></div>
     <canvas id="text-canvas" style="display: none;"></canvas>
     <audio id="bgm" src="/HappyBirthday20250801/06-明日の翼 [久石譲：オリジナルアーティスト](1012706904).mp3" loop></audio>
@@ -67,6 +97,19 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('firefly-container');
+
+             const popup = document.getElementById('startup-popup');
+
+            // ポップアップを非表示にする関数
+            function hidePopup() {
+                popup.classList.add('hidden');
+            }
+
+            // 3秒後に自動でポップアップを消す (3000ミリ秒 = 3秒)
+            setTimeout(hidePopup, 3000);
+
+            // 画面をクリックしてもポップアップが消えるようにする
+            popup.addEventListener('click', hidePopup, { once: true });
             
             // 背景の蛍 (変更なし)
             const numBackgroundFireflies = 1500;
