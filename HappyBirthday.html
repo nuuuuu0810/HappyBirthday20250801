@@ -96,13 +96,13 @@
                 width: '640',
                 // ★再生したいYouTube動画のIDに書き換えてください
                 // 例: https://www.youtube.com/watch?v=N_g2_g_a_oY の「N_g2_g_a_oY」の部分
-                videoId: 'https://www.youtube.com/watch?v=TB4nKrAPZVo', 
+                videoId: 'TB4nKrAPZVo', 
                 playerVars: {
                     'autoplay': 1, // 自動再生はしない（クリックで開始するため）
                     'controls': 0, // コントロール（再生バーなど）を非表示
                     'loop': 1,     // ループ再生を有効に
                     // ★ループ再生するには、videoIdと同じIDをplaylistにも指定する必要があります
-                    'playlist': 'https://www.youtube.com/watch?v=TB4nKrAPZVo'
+                    'playlist': 'TB4nKrAPZVo'
                 },
                 events: {
                     'onReady': onPlayerReady
