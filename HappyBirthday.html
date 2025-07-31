@@ -39,12 +39,16 @@
             75% { transform: translate(var(--tx3, 10px), var(--ty3, 10px)); opacity: 0.6; }
         }
 
-        /* ★変更点1: YouTubeプレーヤーとスタート画面のスタイルを追加 */
+        /* ★iPhone対策1: YouTubeプレーヤーのスタイルを変更 */
         #player-container {
-            /* プレーヤーを画面の外に隠す */
+            /* プレーヤーを画面外ではなく、透明にして隠す */
             position: absolute;
-            top: -9999px;
-            left: -9999px;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none; /* クリック操作を妨げないようにする */
         }
         #startup-popup {
             position: fixed;
@@ -61,13 +65,12 @@
             font-family: 'Times New Roman', serif;
             letter-spacing: 0.1em;
             cursor: pointer;
-            z-index: 10000; /* 他の要素より手前に表示 */
-            transition: opacity 1s ease; /* フェードアウトのアニメーション */
+            z-index: 10000;
+            transition: opacity 1s ease;
         }
-        /* ポップアップを非表示にするためのクラス */
         #startup-popup.hidden {
             opacity: 0;
-            pointer-events: none; /* 透明になった後、クリックイベントを無効化 */
+            pointer-events: none;
         }
 
     </style>
@@ -76,153 +79,144 @@
     <div id="firefly-container"></div>
     <canvas id="text-canvas" style="display: none;"></canvas>
 
-    <!-- ★変更点2: audioタグを削除し、YouTubeプレーヤー用のdivを追加 -->
     <div id="player-container">
         <div id="player"></div>
     </div>
-    <!-- <audio id="bgm" src="/HappyBirthday20250801/06-明日の翼 [久石譲：オリジナルアーティスト](1012706904).mp3" loop></audio> -->
+    
+    <div id="startup-popup">Click to Start</div>
 
-    <!-- ★変更点3: YouTube IFrame Player APIのスクリプトを読み込む -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-    // ★変更点1: プレーヤーの準備が完了したかを管理する変数を用意
-    let player;
-    let isPlayerReady = false;
+        let player;
+        let isPlayerReady = false;
 
-    // YouTube APIが読み込まれたら、この関数が自動的に呼び出される
-    function onYouTubeIframeAPIReady() {
-        const popup = document.getElementById('startup-popup');
-        popup.textContent = "Loading Music..."; // 準備中であることを示す
-
-        player = new YT.Player('player', {
-            height: '360',
-            width: '640',
-            videoId: 'TB4nKrAPZVo', 
-            playerVars: {
-                // ★変更点2: autoplayを0に変更。自動再生はせず、クリックで再生を開始する
-                'autoplay': 0, 
-                'controls': 0,
-                'loop': 1,
-                'playlist': 'TB4nKrAPZVo'
-            },
-            events: {
-                // ★変更点3: onReadyイベントで準備完了フラグを立て、テキストを変更
-                'onReady': onPlayerReady
-            }
-        });
-    }
-
-    // プレーヤーの準備が完了したときに呼ばれる
-    function onPlayerReady(event) {
-        isPlayerReady = true;
-        // 音量を50%に設定（0から100の整数）
-        event.target.setVolume(50);
-        
-        // 準備が完了したら、クリックを促すメッセージに変更
-        const popup = document.getElementById('startup-popup');
-        popup.textContent = "Click to Start"; 
-        
-        console.log("YouTube Player is ready. Click the screen to start.");
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const container = document.getElementById('firefly-container');
-
-        // (ここから蛍のアニメーション生成コード...変更なし)
-        const numBackgroundFireflies = 1500;
-        for (let i = 0; i < numBackgroundFireflies; i++) {
-            const firefly = document.createElement('div');
-            firefly.classList.add('firefly', 'background-firefly');
-            const x = Math.random() * 100;
-            const y_random_factor = Math.pow(Math.random(), 3);
-            const y = 100 - (y_random_factor * 50);
-            firefly.style.left = `${x}vw`;
-            firefly.style.top = `${y}vh`;
-            const size = Math.random() * 5 + 2;
-            firefly.style.width = `${size}px`;
-            firefly.style.height = `${size}px`;
-            firefly.style.animationDuration = `${Math.random() * 10 + 5}s`;
-            firefly.style.animationDelay = `${Math.random() * 15}s`;
-            container.appendChild(firefly);
-        }
-
-        const canvas = document.getElementById('text-canvas');
-        const ctx = canvas.getContext('2d');
-
-        function getCharacterCoordinates() {
-            const text1 = "HAPPY";
-            const text2 = "BIRTHDAY";
-            const fontSize = window.innerWidth / 7;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            ctx.font = `bold ${fontSize}px 'Arial', sans-serif`;
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            const baseY = window.innerHeight * 0.80; 
-            ctx.fillText(text1, canvas.width / 2, baseY - fontSize * 0.65);
-            ctx.fillText(text2, canvas.width / 2, baseY + fontSize * 0.65);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            const coordinates = [];
-            const density = 4;
-            for (let y = 0; y < canvas.height; y += density) {
-                for (let x = 0; x < canvas.width; x += density) {
-                    const alphaIndex = (y * canvas.width + x) * 4 + 3;
-                    if (data[alphaIndex] > 128) {
-                        coordinates.push({ x, y });
-                    }
+        // YouTube APIが読み込まれたら、この関数が自動的に呼び出される
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: 'TB4nKrAPZVo', 
+                playerVars: {
+                    'autoplay': 0, // 自動再生はしない
+                    'controls': 0, // コントロール非表示
+                    'loop': 1,     // ループ再生
+                    'playlist': 'TB4nKrAPZVo',
+                    // ★iPhone対策2: 全画面にならずにインライン再生するための設定
+                    'playsinline': 1 
+                },
+                events: {
+                    'onReady': onPlayerReady
                 }
-            }
-            return coordinates;
-        }
-
-        function createTextFireflies(coordinates) {
-            const moveRange = 15;
-            coordinates.forEach(coord => {
-                const wrapper = document.createElement('div');
-                wrapper.classList.add('text-firefly-wrapper');
-                const firefly = document.createElement('div');
-                firefly.classList.add('firefly');
-                const tx1 = (Math.random() - 0.5) * 2 * moveRange;
-                const ty1 = (Math.random() - 0.5) * 2 * moveRange;
-                const tx2 = (Math.random() - 0.5) * 2 * moveRange;
-                const ty2 = (Math.random() - 0.5) * 2 * moveRange;
-                const tx3 = (Math.random() - 0.5) * 2 * moveRange;
-                const ty3 = (Math.random() - 0.5) * 2 * moveRange;
-                firefly.style.setProperty('--tx1', `${tx1}px`);
-                firefly.style.setProperty('--ty1', `${ty1}px`);
-                firefly.style.setProperty('--tx2', `${tx2}px`);
-                firefly.style.setProperty('--ty2', `${ty2}px`);
-                firefly.style.setProperty('--tx3', `${tx3}px`);
-                firefly.style.setProperty('--ty3', `${ty3}px`);
-                wrapper.style.left = `${coord.x}px`;
-                wrapper.style.top = `${coord.y}px`;
-                const size = Math.random() * 3 + 3;
-                firefly.style.width = `${size}px`;
-                firefly.style.height = `${size}px`;
-                wrapper.appendChild(firefly);
-                container.appendChild(wrapper);
             });
         }
-        
-        // --- メイン処理 ---
-        const coords = getCharacterCoordinates();
-        createTextFireflies(coords);
 
-        // ★変更点4: スタート画面のクリックイベントを修正
-        const popup = document.getElementById('startup-popup');
-        popup.addEventListener('click', () => {
-            // playerオブジェクトが準備できてから再生を開始する
-            if (isPlayerReady && player && typeof player.playVideo === 'function') {
-                player.playVideo();
-                
-                // ポップアップをフェードアウトさせて非表示にする
-                popup.classList.add('hidden');
+        // プレーヤーの準備が完了したときに呼ばれる
+        function onPlayerReady(event) {
+            isPlayerReady = true;
+            console.log("YouTube Player is ready. Click the screen to start.");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('firefly-container');
+
+            // (ここから蛍のアニメーション生成コード...変更なし)
+            const numBackgroundFireflies = 1500;
+            for (let i = 0; i < numBackgroundFireflies; i++) {
+                const firefly = document.createElement('div');
+                firefly.classList.add('firefly', 'background-firefly');
+                const x = Math.random() * 100;
+                const y_random_factor = Math.pow(Math.random(), 3);
+                const y = 100 - (y_random_factor * 50);
+                firefly.style.left = `${x}vw`;
+                firefly.style.top = `${y}vh`;
+                const size = Math.random() * 5 + 2;
+                firefly.style.width = `${size}px`;
+                firefly.style.height = `${size}px`;
+                firefly.style.animationDuration = `${Math.random() * 10 + 5}s`;
+                firefly.style.animationDelay = `${Math.random() * 15}s`;
+                container.appendChild(firefly);
             }
-        }, { once: true });
-    });
-</script>
+
+            const canvas = document.getElementById('text-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function getCharacterCoordinates() {
+                const text1 = "HAPPY";
+                const text2 = "BIRTHDAY";
+                const fontSize = window.innerWidth / 7;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                ctx.font = `bold ${fontSize}px 'Arial', sans-serif`;
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const baseY = window.innerHeight * 0.80; 
+                ctx.fillText(text1, canvas.width / 2, baseY - fontSize * 0.65);
+                ctx.fillText(text2, canvas.width / 2, baseY + fontSize * 0.65);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                const coordinates = [];
+                const density = 4;
+                for (let y = 0; y < canvas.height; y += density) {
+                    for (let x = 0; x < canvas.width; x += density) {
+                        const alphaIndex = (y * canvas.width + x) * 4 + 3;
+                        if (data[alphaIndex] > 128) {
+                            coordinates.push({ x, y });
+                        }
+                    }
+                }
+                return coordinates;
+            }
+
+            function createTextFireflies(coordinates) {
+                const moveRange = 15;
+                coordinates.forEach(coord => {
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('text-firefly-wrapper');
+                    const firefly = document.createElement('div');
+                    firefly.classList.add('firefly');
+                    const tx1 = (Math.random() - 0.5) * 2 * moveRange;
+                    const ty1 = (Math.random() - 0.5) * 2 * moveRange;
+                    const tx2 = (Math.random() - 0.5) * 2 * moveRange;
+                    const ty2 = (Math.random() - 0.5) * 2 * moveRange;
+                    const tx3 = (Math.random() - 0.5) * 2 * moveRange;
+                    const ty3 = (Math.random() - 0.5) * 2 * moveRange;
+                    firefly.style.setProperty('--tx1', `${tx1}px`);
+                    firefly.style.setProperty('--ty1', `${ty1}px`);
+                    firefly.style.setProperty('--tx2', `${tx2}px`);
+                    firefly.style.setProperty('--ty2', `${ty2}px`);
+                    firefly.style.setProperty('--tx3', `${tx3}px`);
+                    firefly.style.setProperty('--ty3', `${ty3}px`);
+                    wrapper.style.left = `${coord.x}px`;
+                    wrapper.style.top = `${coord.y}px`;
+                    const size = Math.random() * 3 + 3;
+                    firefly.style.width = `${size}px`;
+                    firefly.style.height = `${size}px`;
+                    wrapper.appendChild(firefly);
+                    container.appendChild(wrapper);
+                });
+            }
+            
+            // --- メイン処理 ---
+            const coords = getCharacterCoordinates();
+            createTextFireflies(coords);
+
+            const popup = document.getElementById('startup-popup');
+            popup.addEventListener('click', () => {
+                // playerオブジェクトが準備できてから再生を開始する
+                if (isPlayerReady && player && typeof player.playVideo === 'function') {
+                    
+                    // ★iPhone対策3: ユーザーのタップイベント内で音量設定・ミュート解除・再生をまとめて実行
+                    player.setVolume(50);
+                    player.unMute();
+                    player.playVideo();
+                    
+                    // ポップアップをフェードアウトさせて非表示にする
+                    popup.classList.add('hidden');
+                }
+            }, { once: true }); // 一度クリックされたら、このイベントは削除される
+        });
+    </script>
 </body>
 </html>
