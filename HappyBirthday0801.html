@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お誕生日おめでとう！</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #011439;
+        }
+        canvas {
+            display: block;
+        }
+        .message {
+            position: absolute;
+            top: 40%; /* 画面の縦中央に */
+            left: 50%;
+            transform: translateX(-50%); /* テキストを水平中央に配置 */
+            color: #fff;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 10vw; /* 画面サイズに応じて文字サイズが変わる */
+            font-weight: bold;
+            text-align: center;
+            /* テキストに輝くような影をつける */
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 100, 0.6);
+            /* メッセージが花火のクリック等を妨げないようにする */
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <!-- ▼▼▼ ここから追加したコード ▼▼▼ -->
+    <!-- BGMを再生するためのaudioタグ -->
+    <!-- autoplay: 自動再生を試みます -->
+    <!-- loop: 曲を繰り返し再生します -->
+    <!-- "a.mp3"というファイルがこのHTMLファイルと同じ場所にある必要があります -->
+    <audio src="ihuudoudou.mp3" autoplay loop></audio>
+    <!-- ▲▲▲ ここまで追加したコード ▲▲▲ -->
+
+    <h1 class="message">HAPPY BIRTHDAY</h1>
+    <canvas id="fireworksCanvas"></canvas>
+<script>
+    const canvas = document.getElementById('fireworksCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let fireworks = [];
+    let particles = [];
+    const gravity = 0.05;
+
+    // 花火クラス
+    class Firework {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = canvas.height;
+            this.targetX = this.x;
+            this.targetY = Math.random() * (canvas.height * 0.8);
+            this.speed = 2.5;
+            this.angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
+            this.vx = Math.cos(this.angle) * this.speed;
+            this.vy = Math.sin(this.angle) * this.speed;
+            this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+            this.isBlown = false;
+        }
+
+        update() {
+            if (this.y > this.targetY) {
+                this.y += this.vy;
+                this.x += this.vx;
+            } else {
+                this.isBlown = true;
+                const particleCount = Math.floor(Math.random() * 50) + 50;
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle(this.x, this.y, this.color));
+                }
+            }
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+    }
+
+    // 爆発後のパーティクル（火花）クラス
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            const speed = Math.random() * 4 + 1;
+            const angle = Math.random() * Math.PI * 2;
+            this.vx = Math.cos(angle) * speed;
+            this.vy = Math.sin(angle) * speed;
+            this.alpha = 1;
+            this.friction = 0.98;
+            this.radius = Math.random() * 1.5 + 1;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += gravity;
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+            this.alpha -= 0.02;
+
+            if (this.radius > 0.1) {
+                this.radius -= 0.03;
+            } else {
+                this.radius = 0;
+            }
+        }
+
+        draw() {
+            if(this.radius > 0) {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+    }
+
+    // メインのアニメーションループ
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.fillStyle = 'rgba(1, 20, 57, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (Math.random() < 0.07) {
+            fireworks.push(new Firework());
+        }
+
+        for (let i = fireworks.length - 1; i >= 0; i--) {
+            fireworks[i].update();
+            fireworks[i].draw();
+            if (fireworks[i].isBlown) {
+                fireworks.splice(i, 1);
+            }
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update();
+            particles[i].draw();
+            if (particles[i].alpha <= 0 || particles[i].radius <= 0) {
+                particles.splice(i, 1);
+            }
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    animate();
+
+    // 20秒後（20000ミリ秒）にページを移動させるタイマーを設定
+    setTimeout(function() {
+        window.location.href = 'https://nuuuuu0810.github.io/HappyBirthday20250801/HappyBirthday.html';
+    }, 20000); // 20000ミリ秒 = 20秒
+</script>
+</body>
+</html>
