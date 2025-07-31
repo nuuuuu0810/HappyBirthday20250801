@@ -83,7 +83,6 @@
         <div id="player"></div>
     </div>
     
-    <div id="startup-popup">Click to Start</div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -208,7 +207,7 @@
                 if (isPlayerReady && player && typeof player.playVideo === 'function') {
                     
                     // ★iPhone対策3: ユーザーのタップイベント内で音量設定・ミュート解除・再生をまとめて実行
-                    player.setVolume(50);
+                    player.setVolume(20);
                     player.unMute();
                     player.playVideo();
                     
