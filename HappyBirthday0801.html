@@ -36,7 +36,7 @@
     <!-- autoplay: 自動再生を試みます -->
     <!-- loop: 曲を繰り返し再生します -->
     <!-- "a.mp3"というファイルがこのHTMLファイルと同じ場所にある必要があります -->
-    <audio src="ihuudoudou.mp3" autoplay loop></audio>
+   <audio id="bgm" src="ihuudoudou.mp3" loop></audio>
     <!-- ▲▲▲ ここまで追加したコード ▲▲▲ -->
 
     <h1 class="message">HAPPY BIRTHDAY</h1>
@@ -44,6 +44,25 @@
 <script>
     const canvas = document.getElementById('fireworksCanvas');
     const ctx = canvas.getContext('2d');
+
+     // ▼▼▼ ここから追加したコード ▼▼▼
+    const audio = document.getElementById('bgm');
+
+    // ユーザーが最初にページを操作したときに音楽を再生する関数
+    function playMusicOnFirstInteraction() {
+        // audio.play() は Promise を返します。エラー処理のために catch を追加します。
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.error("音楽の再生に失敗しました。", error);
+            });
+        }
+    }
+
+    // 画面のどこかをクリック、またはタップした時に一度だけ音楽を再生
+    // { once: true } オプションにより、このイベントは一度実行されると自動的に解除されます。
+    window.addEventListener('click', playMusicOnFirstInteraction, { once: true });
+    window.addEventListener('touchstart', playMusicOnFirstInteraction, { once: true });
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
